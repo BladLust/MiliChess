@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/imgs">
+        <file>Unflipped.png</file>
+        <file>ChessBoardEmpty.png</file>
+        <file>空行营.png</file>
+        <file>占位符（空兵站）.png</file>
+        <file>JunR.png</file>
+        <file>BombR.png</file>
+        <file>LvR.png</file>
+        <file>JunB.png</file>
+        <file>MineR.png</file>
+        <file>MineB.png</file>
+        <file>PaiB.png</file>
+        <file>ShiB.png</file>
+        <file>BannarB.png</file>
+        <file>PaiR.png</file>
+        <file>CommR.png</file>
+        <file>SoldierR.png</file>
+        <file>LianR.png</file>
+        <file>YingR.png</file>
+        <file>TuanR.png</file>
+        <file>BannarR.png</file>
+        <file>ShiR.png</file>
+        <file>LianB.png</file>
+        <file>LvB.png</file>
+        <file>TuanB.png</file>
+        <file>BombB.png</file>
+        <file>YingB.png</file>
+        <file>CommB.png</file>
+        <file>SoldierB.png</file>
+        <file>棋盘.png</file>
+        <file>棋盘2.png</file>
+        <file>棋盘背景.jpg</file>
+    </qresource>
+</RCC>
