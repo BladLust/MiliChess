@@ -23,13 +23,11 @@ private:
     int placeHolderCount=0;
     void hprPointToGrid(int&x, int&y,const QPoint& pt);
 
-signals:
-    void GridPressSig(const QPoint&);
 public:
     MiliChess(QWidget *parent = nullptr);
     ~MiliChess();
 
 public slots:
-    void GridPressSlot(const QPoint&);
+    void GridPressSlot();
 };
 #endif // MILICHESS_H

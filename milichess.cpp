@@ -8,7 +8,6 @@ MiliChess::MiliChess(QWidget *parent)
 #ifdef Q_OS_MACOS
     setFixedHeight(636);
 #endif
-    connect(this,&MiliChess::GridPressSig,this,&MiliChess::GridPressSlot);
 // Loading Pieces from now
     boardSlots[0][0]= qobject_cast<ChessPiece*>(ui->BannarB1);
     boardSlots[0][0]->isBlue=true,boardSlots[0][0]->thisType=BANNAR;
@@ -111,25 +110,10 @@ MiliChess::MiliChess(QWidget *parent)
     boardSlots[9][4]= qobject_cast<ChessPiece*>(ui->YingR2);
     boardSlots[9][4]->isBlue=false,boardSlots[9][4]->thisType=YING;
     ChessPiece ** slotPtr=&boardSlots[0][0];
-//    for(int i=0;i<50;i++){
-//        pieces[i]=boardSlots[i/5][i%5];// Collecting all valid chesspieces into the array
-//        connect(this->pieces[i],&QPushButton::released,[=](){
-//            auto a=sender();
-//            qDebug()<<"Event captured, target: "<<a->objectName();
-//            emit MiliChess::GridPressSig(qobject_cast<QPushButton *>(a)->pos());
-//        });// Bind all chesspieces so that their press signal would be received
-//        qDebug()<<"Connection complete, target: "<<pieces[i]->objectName();
-//    }
-    connect(this->boardSlots[0][0],&QPushButton::released,[=](){
-                auto a=sender();
-                qDebug()<<"Event captured, target: "<<a->objectName();
-                emit MiliChess::GridPressSig(qobject_cast<QPushButton *>(a)->pos());
-            });
-    connect(ui->BannarR1,&QPushButton::released,[=](){
-                auto a=sender();
-                qDebug()<<"Event captured, target: "<<a->objectName();
-                emit MiliChess::GridPressSig(qobject_cast<QPushButton *>(a)->pos());
-            });
+    for(int i=0;i<50;i++){
+        pieces[i]=boardSlots[i/5][i%5];// Collecting all valid chesspieces into the array
+        connect(pieces[i],&QPushButton::released,this,&MiliChess::GridPressSlot);
+    }
     qDebug()<<"Init Complete!";
 }
 
@@ -194,9 +178,9 @@ void MiliChess::hprPointToGrid(int &x, int &y,const QPoint& pt){
     }
     return;
 }
-void MiliChess::GridPressSlot(const QPoint& loc){
+void MiliChess::GridPressSlot(){
     int x,y;
-    hprPointToGrid(x,y,loc);
+    hprPointToGrid(x,y,qobject_cast<ChessPiece*>(sender())->pos());
     qDebug()<<"Received Press on grid location "<<x<<","<<y;
     return;
 }
