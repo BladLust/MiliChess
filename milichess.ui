@@ -51,7 +51,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="CommR1">
+   <widget class="ChessPiece" name="CommR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -75,7 +75,7 @@ box-shadow: 0px 2px 1px grey</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="ShiR1">
+   <widget class="ChessPiece" name="ShiR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -98,7 +98,7 @@ border-image: url(:/imgs/ShiR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LvR1">
+   <widget class="ChessPiece" name="LvR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -121,7 +121,7 @@ border-image: url(:/imgs/LvR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="JunR1">
+   <widget class="ChessPiece" name="JunR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -144,7 +144,7 @@ border-image: url(:/imgs/JunR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="ShiR2">
+   <widget class="ChessPiece" name="ShiR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -167,7 +167,7 @@ border-image: url(:/imgs/ShiR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LvR2">
+   <widget class="ChessPiece" name="LvR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -190,7 +190,7 @@ border-image: url(:/imgs/LvR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BannarR1">
+   <widget class="ChessPiece" name="BannarR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -213,7 +213,7 @@ border-image: url(:/imgs/BannarR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierR1">
+   <widget class="ChessPiece" name="SoldierR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -236,7 +236,7 @@ border-image: url(:/imgs/SoldierR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierR2">
+   <widget class="ChessPiece" name="SoldierR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -259,7 +259,7 @@ border-image: url(:/imgs/SoldierR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierR3">
+   <widget class="ChessPiece" name="SoldierR3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -282,7 +282,7 @@ border-image: url(:/imgs/SoldierR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierB2">
+   <widget class="ChessPiece" name="SoldierB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -305,7 +305,7 @@ border-image: url(:/imgs/SoldierB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineB2">
+   <widget class="ChessPiece" name="MineB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -328,7 +328,7 @@ border-image: url(:/imgs/MineB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BannarB1">
+   <widget class="ChessPiece" name="BannarB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -352,7 +352,7 @@ box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);</string
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="JunB1">
+   <widget class="ChessPiece" name="JunB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -375,7 +375,7 @@ border-image: url(:/imgs/JunB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="CommB1">
+   <widget class="ChessPiece" name="CommB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -398,7 +398,7 @@ border-image: url(:/imgs/CommB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="TuanR1">
+   <widget class="ChessPiece" name="TuanR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -421,7 +421,7 @@ border-image: url(:/imgs/TuanR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="TuanR2">
+   <widget class="ChessPiece" name="TuanR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -444,7 +444,7 @@ border-image: url(:/imgs/TuanR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="YingR1">
+   <widget class="ChessPiece" name="YingR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -467,7 +467,7 @@ border-image: url(:/imgs/YingR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="YingR2">
+   <widget class="ChessPiece" name="YingR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -490,7 +490,7 @@ border-image: url(:/imgs/YingR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BombR1">
+   <widget class="ChessPiece" name="BombR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -513,7 +513,7 @@ border-image: url(:/imgs/BombR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BombR2">
+   <widget class="ChessPiece" name="BombR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -536,7 +536,7 @@ border-image: url(:/imgs/BombR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineR2">
+   <widget class="ChessPiece" name="MineR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -559,7 +559,7 @@ border-image: url(:/imgs/MineR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineR3">
+   <widget class="ChessPiece" name="MineR3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -572,8 +572,7 @@ border-image: url(:/imgs/MineR.png);</string>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: grey;
-border-image: url(:/imgs/MineR.png);</string>
+     <string notr="true">border-image: url(:/imgs/MineR.png);</string>
     </property>
     <property name="text">
      <string/>
@@ -582,7 +581,7 @@ border-image: url(:/imgs/MineR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianR2">
+   <widget class="ChessPiece" name="LianR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -605,7 +604,7 @@ border-image: url(:/imgs/LianR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianR3">
+   <widget class="ChessPiece" name="LianR3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -628,7 +627,7 @@ border-image: url(:/imgs/LianR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiR1">
+   <widget class="ChessPiece" name="PaiR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -651,7 +650,7 @@ border-image: url(:/imgs/PaiR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiR2">
+   <widget class="ChessPiece" name="PaiR2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -674,7 +673,7 @@ border-image: url(:/imgs/PaiR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiR3">
+   <widget class="ChessPiece" name="PaiR3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -697,7 +696,7 @@ border-image: url(:/imgs/PaiR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineR1">
+   <widget class="ChessPiece" name="MineR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -720,7 +719,7 @@ border-image: url(:/imgs/MineR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianR1">
+   <widget class="ChessPiece" name="LianR1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -743,7 +742,7 @@ border-image: url(:/imgs/LianR.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineB1">
+   <widget class="ChessPiece" name="MineB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -766,7 +765,7 @@ border-image: url(:/imgs/MineB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="MineB3">
+   <widget class="ChessPiece" name="MineB3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -789,7 +788,7 @@ border-image: url(:/imgs/MineB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierB1">
+   <widget class="ChessPiece" name="SoldierB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -812,7 +811,7 @@ border-image: url(:/imgs/SoldierB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="SoldierB3">
+   <widget class="ChessPiece" name="SoldierB3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -835,7 +834,7 @@ border-image: url(:/imgs/SoldierB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianB1">
+   <widget class="ChessPiece" name="LianB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -858,7 +857,7 @@ border-image: url(:/imgs/LianB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianB2">
+   <widget class="ChessPiece" name="LianB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -881,7 +880,7 @@ border-image: url(:/imgs/LianB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LianB3">
+   <widget class="ChessPiece" name="LianB3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -904,7 +903,7 @@ border-image: url(:/imgs/LianB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BombB1">
+   <widget class="ChessPiece" name="BombB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -927,7 +926,7 @@ border-image: url(:/imgs/BombB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="BombB2">
+   <widget class="ChessPiece" name="BombB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -950,7 +949,7 @@ border-image: url(:/imgs/BombB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiB1">
+   <widget class="ChessPiece" name="PaiB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -973,7 +972,7 @@ border-image: url(:/imgs/PaiB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiB2">
+   <widget class="ChessPiece" name="PaiB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -996,7 +995,7 @@ border-image: url(:/imgs/PaiB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="PaiB3">
+   <widget class="ChessPiece" name="PaiB3">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1019,7 +1018,7 @@ border-image: url(:/imgs/PaiB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="ShiB1">
+   <widget class="ChessPiece" name="ShiB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1042,7 +1041,7 @@ border-image: url(:/imgs/ShiB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="ShiB2">
+   <widget class="ChessPiece" name="ShiB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1065,7 +1064,7 @@ border-image: url(:/imgs/ShiB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LvB1">
+   <widget class="ChessPiece" name="LvB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1088,7 +1087,7 @@ border-image: url(:/imgs/LvB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="LvB2">
+   <widget class="ChessPiece" name="LvB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1111,7 +1110,7 @@ border-image: url(:/imgs/LianB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="YingB1">
+   <widget class="ChessPiece" name="YingB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1134,7 +1133,7 @@ border-image: url(:/imgs/YingB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="YingB2">
+   <widget class="ChessPiece" name="YingB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1157,7 +1156,7 @@ border-image: url(:/imgs/YingB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="TuanB1">
+   <widget class="ChessPiece" name="TuanB1">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1180,7 +1179,7 @@ border-image: url(:/imgs/TuanB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="TuanB2">
+   <widget class="ChessPiece" name="TuanB2">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -1243,6 +1242,13 @@ border-image: url(:/imgs/TuanB.png);</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ChessPiece</class>
+   <extends>QPushButton</extends>
+   <header>chesspiece.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="Resouces.qrc"/>
  </resources>
