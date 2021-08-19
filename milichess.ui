@@ -10,6 +10,11 @@
     <height>658</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>13</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>MiliChess</string>
   </property>
@@ -1212,7 +1217,7 @@ border-image: url(:/imgs/TuanB.png);</string>
     <property name="font">
      <font>
       <family>.AppleSimplifiedChineseFont</family>
-      <pointsize>26</pointsize>
+      <pointsize>22</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>

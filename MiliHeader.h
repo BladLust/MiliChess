@@ -23,6 +23,7 @@ enum PIECE_TYPE {
 constexpr char TYPE_NAME[][10] = {"Bannar", "Mine",    "Bomb", "Comm", "Jun",
                                   "Shi",    "Lv",      "Tuan", "Ying", "Lian",
                                   "Pai",    "Soldier", "Empty"};
+constexpr char TYPE_NAME_CHN[][20]={"军旗","地雷","炸弹","司令","军长","师长","旅长","团长","营长","连长","排长","工兵","空棋","地雷"};
 constexpr int XINGYING[][2] = {{2, 1}, {2, 3}, {3, 2}, {4, 1}, {4, 3},
                                {7, 1}, {7, 3}, {8, 2}, {9, 1}, {9, 3}};
 enum PIECE_CLASH_RESULT{ILLEGAL_CLASH,WIN,LOSE,BOTH_DIE};

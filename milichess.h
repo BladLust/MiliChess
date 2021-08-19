@@ -21,8 +21,8 @@ class MiliChess : public QMainWindow {
     Q_OBJECT
    private:
     Ui::MiliChess *ui;
-    enum TURN_STATE { CHOOSE_PIECE, MOVE_PIECE } turnState=CHOOSE_PIECE;
-    enum PLAYERS { PLAYER1, PLAYER2 };
+    enum TURN_STATE { CHOOSE_PIECE=0, MOVE_PIECE=1 } turnState=CHOOSE_PIECE;
+    enum PLAYERS { PLAYER1=0, PLAYER2=1 };
 
     // Game state recorder
     bool sideDetermined = false;
@@ -43,6 +43,7 @@ class MiliChess : public QMainWindow {
     void makeMovableMap();
     void resetCursor();
     void win(PLAYERS);
+    void choosePiecePrep();
 
 
    public:

@@ -110,6 +110,9 @@ MiliChess::MiliChess(QWidget *parent)
     boardSlots[9][3]->side = RED, boardSlots[9][3]->thisType = YING;
     boardSlots[9][4] = qobject_cast<ChessPiece *>(ui->YingR2);
     boardSlots[9][4]->side = RED, boardSlots[9][4]->thisType = YING;
+    for(int i=10;i<12;++i)
+        for(int j=0;j<5;++j)
+            boardSlots[i][j]=nullptr;
     placeHolderCount = 0;
     for (int i = 0; i < 70; i++) {
         ChessPiece *newEmpty = new ChessPiece(this);
@@ -144,8 +147,9 @@ void MiliChess::gridPress() {
     qDebug() << "Received Press on grid location " << x << "," << y;
     if (x == -1 || y == -1) qDebug() << "Received Press on unorthodox button";
 
-    if (turnState == CHOOSE_PIECE) {
-        if (thisPiece->thisType != EMPTY && thisPiece->isFlipped == false) {
+        if (turnState == CHOOSE_PIECE) {
+         if(thisPiece->thisType==EMPTY)return;
+        if ( thisPiece->isFlipped == false) {
             thisPiece->isFlipped = true;
             thisPiece->reStyle();
             if (!sideDetermined) {
@@ -159,8 +163,13 @@ void MiliChess::gridPress() {
                 }
             }
             currentPlayer = (PLAYERS)(!(int)currentPlayer);  // Switch side
+            printGameInfo();
             return;
         }
+        if (thisPiece->isFlipped==true&&sideDetermined==false){
+            return;
+        }
+        if(thisPiece->isFlipped==true&&thisPiece->side!=players[currentPlayer].side)return;
         switch (thisPiece->thisType) {
             case BANNAR:
             case UNPROTECTED_BANNAR:
@@ -173,11 +182,13 @@ void MiliChess::gridPress() {
                 makeMovableMap();
                 turnState = MOVE_PIECE;
                 resetCursor();
+                printGameInfo();
         }
     } else {
         if (thisPiece->pos() == chosen->pos()) {
             turnState = CHOOSE_PIECE;
             resetCursor();
+            printGameInfo();
             return;
         }
         if (movableMap[x][y] == true) {
@@ -189,6 +200,7 @@ void MiliChess::gridPress() {
             hprPointToGrid(chosenX, chosenY, chosen->pos());
             boardSlots[chosenX][chosenY] =
                 placeHolderPieces[chosenX * 5 + chosenY];
+            boardSlots[chosenX][chosenY]->move(HOR_ANCHOR[chosenY],VER_ANCHOR[chosenX]);
             boardSlots[chosenX][chosenY]->show();
             boardSlots[chosenX][chosenY]->setEnabled(true);
             // If the eaten button wasn't a placeholder, decrease its count
@@ -216,18 +228,19 @@ void MiliChess::gridPress() {
                 players[currentPlayer].pieceCount[chosen->thisType]--;
                 boardSlots[x][y] = placeHolderPieces[x * 5 + y];
                 boardSlots[x][y]->setEnabled(true);
+                boardSlots[x][y]->move(HOR_ANCHOR[y],VER_ANCHOR[x]);
                 boardSlots[x][y]->show();
             }
             turnState = CHOOSE_PIECE;
-            resetCursor();
             currentPlayer = (PLAYERS)!currentPlayer;
+            resetCursor();
         } else {
             qDebug() << "Nope, you can't go there with this one.";
         }
+        printGameInfo();
     }
     return;
 }
-
 void MiliChess::resetGame() {
     // Resetting BANNARs from potential UNPROTECTED_BANNARs
     ui->BannarB1->thisType = BANNAR;
@@ -237,20 +250,14 @@ void MiliChess::resetGame() {
     sideDetermined = false;
     turnState = CHOOSE_PIECE;
     //Unfreeze the game from last game
-    for (int i = 0; i < 12; i++) {
-        for (int j = 0; j < 5; j++) {
-            if (boardSlots[i][j]) {
-                if (boardSlots[i][j]->thisType != EMPTY)
-                    boardSlots[i][j]->setEnabled(true);
-                else
-                    boardSlots[i][j]->setEnabled(false);
-            }
-        }
+    for (int i = 0; i < 70; i++) {
+        placeHolderPieces[i]->setEnabled(false);
+        placeHolderPieces[i]->hide();
     }
     ui->mainInfo->setAlignment(Qt::Alignment(Qt::AlignmentFlag::AlignLeft |
                                              Qt::AlignmentFlag::AlignVCenter));
     currentPlayer = (PLAYERS)(
-        std::chrono::system_clock::now().time_since_epoch().count() / 2);
+        std::chrono::system_clock::now().time_since_epoch().count() % 2);
     for (int i = 0; i < 50;
          i++) {  // Put all pieces on the top 50 grids on the board, face down
         boardSlots[i / 5][i % 5] = pieces[i];
@@ -281,10 +288,18 @@ void MiliChess::resetGame() {
             boardSlots[i][j]->reStyle();
         }
     }
+    for(int i=0;i<12;i++){
+        for(int j=0;j<5;j++){
+            movableMap[i][j]=true;
+        }
+    }
+    resetCursor();
     printGameInfo();
 }
 
 void MiliSide::reset() {
+    lastFlipped=UNDETERMINED;
+    side=UNDETERMINED;
     pieceCount[BANNAR] = pieceCount[COMM] = pieceCount[JUN] = 1;
     pieceCount[SHI] = pieceCount[LV] = pieceCount[TUAN] = pieceCount[YING] =
         pieceCount[BOMB] = 2;
@@ -292,7 +307,7 @@ void MiliSide::reset() {
         pieceCount[MINE] = 3;
     return;
 }
-void MiliChess::hprPointToGrid(int &x, int &y, const QPoint &pt) {
+void MiliChess::hprPointToGrid(int &y, int &x, const QPoint &pt) {
     x = y = -1;
     switch (pt.x()) {
         case 354:
@@ -355,7 +370,9 @@ void MiliChess::printGameInfo() {
         text += QString::fromUtf8(currentPlayer ? "玩家2" : "玩家1");
         text += QString::fromUtf8(players[currentPlayer].side ? "\t蓝色方\n"
                                                               : "\t红色方\n");
-        text += QString::fromUtf8(turnState ? "请选择移动位置" : "请选择棋子");
+        if (turnState)
+        text+=QString::fromUtf8("当前选中：")+QString::fromUtf8(TYPE_NAME_CHN[chosen->thisType]);
+        text += QString::fromUtf8(turnState ? "，请选择移动位置" : "请选择棋子");
         ui->mainInfo->setText(text);
     }
     // UNDER CONSTRUCTION
@@ -374,7 +391,7 @@ void MiliChess::checkVRailway(int v, int h) {
         if (movableMap[i][h] == true)
             return;  // To end recursion in case of railway loop
         if (boardSlots[i][h]->isFlipped == false) break;
-        if (boardSlots[v][h]->side == chosen->side) break;
+        if (boardSlots[i][h]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[i][h]->thisType];
         if (clashResult != WIN && clashResult != BOTH_DIE) break;
         movableMap[i][h] = true;
@@ -388,7 +405,7 @@ void MiliChess::checkVRailway(int v, int h) {
         if (movableMap[i][h] == true)
             return;  // To end recursion in case of railway loop
         if (boardSlots[i][h]->isFlipped == false) break;
-        if (boardSlots[v][h]->side == chosen->side) break;
+        if (boardSlots[i][h]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[i][h]->thisType];
         if (clashResult != WIN && clashResult != BOTH_DIE) break;
         movableMap[i][h] = true;
@@ -406,12 +423,12 @@ void MiliChess::checkHRailway(int v, int h) {
         if (movableMap[v][i] == true)
             return;  // To end recursion in case of railway loop
         if (boardSlots[v][i]->isFlipped == false) break;
-        if (boardSlots[v][h]->side == chosen->side) break;
+        if (boardSlots[v][i]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[v][i]->thisType];
         if (clashResult != WIN && clashResult != BOTH_DIE) break;
         movableMap[v][i] = true;
         if (chosen->thisType == SOLDIER) {
-            if (i == 4) checkHRailway(v, i);
+            if (i == 4) checkVRailway(v, i);
             if (i == 2) {
                 clashResult =
                     WIN_CHART[chosen->thisType][boardSlots[6][2]->thisType];
@@ -424,7 +441,7 @@ void MiliChess::checkHRailway(int v, int h) {
                 }
                 clashResult =
                     WIN_CHART[chosen->thisType][boardSlots[5][2]->thisType];
-                if (v == 5 && movableMap[5][2] == false &&
+                if (v == 6 && movableMap[5][2] == false &&
                     boardSlots[5][2]->isFlipped == true &&
                     boardSlots[5][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
@@ -438,12 +455,12 @@ void MiliChess::checkHRailway(int v, int h) {
         if (movableMap[v][i] == true)
             return;  // To end recursion in case of railway loop
         if (boardSlots[v][i]->isFlipped == false) break;
-        if (boardSlots[v][h]->side == chosen->side) break;
+        if (boardSlots[v][i]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[v][i]->thisType];
         if (clashResult != WIN && clashResult != BOTH_DIE) break;
         movableMap[v][i] = true;
         if (chosen->thisType == SOLDIER) {
-            if (i == 4) checkHRailway(v, i);
+            if (i == 4) checkVRailway(v, i);
             if (i == 2) {
                 clashResult =
                     WIN_CHART[chosen->thisType][boardSlots[6][2]->thisType];
@@ -456,7 +473,7 @@ void MiliChess::checkHRailway(int v, int h) {
                 }
                 clashResult =
                     WIN_CHART[chosen->thisType][boardSlots[5][2]->thisType];
-                if (v == 5 && movableMap[5][2] == false &&
+                if (v == 6 && movableMap[5][2] == false &&
                     boardSlots[5][2]->isFlipped == true &&
                     boardSlots[5][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
@@ -483,7 +500,7 @@ void MiliChess::makeMovableMap() {
     checkHRailway(chosenX, chosenY);
     checkVRailway(chosenX, chosenY);
     // Secondly, we consider the cases where the chess pieces that diagonally
-    if (isXingYing(chosen->pos().x(), chosen->pos().y())) {
+    if (isXingYing(chosenX, chosenY)) {
         for (int i = 0; i < 4; ++i) {
             probeX = chosenX + DIRECTION_MAP[i * 2 + 1][0];
             probeY = chosenY + DIRECTION_MAP[i * 2 + 1][1];
@@ -501,11 +518,9 @@ void MiliChess::makeMovableMap() {
             probeY = chosenY + DIRECTION_MAP[i * 2 + 1][1];
             if (probeX < 0 || probeX > 11 || probeY < 0 || probeY > 4) continue;
             if (!isXingYing(probeX, probeY)) continue;
+            if(boardSlots[probeX][probeY]->thisType!=EMPTY) continue;
             if (boardSlots[probeX][probeY]->isFlipped == false) continue;
             if (boardSlots[probeX][probeY]->side == chosen->side) continue;
-            clashResult = WIN_CHART[chosen->thisType]
-                                   [boardSlots[probeX][probeY]->thisType];
-            if (clashResult == WIN || clashResult == BOTH_DIE)
                 movableMap[probeX][probeY] = true;
         }
     }
@@ -516,10 +531,11 @@ void MiliChess::makeMovableMap() {
         if (probeX < 0 || probeX > 11 || probeY < 0 || probeY > 4) continue;
         // The following two are determining whether the piece is trying to
         // cross the river
-        if (i == 0 && probeX == 6 && (probeY == 1 || probeY == 3)) continue;
-        if (i == 2 && probeX == 5 && (probeY == 1 || probeY == 3)) continue;
+        if (i == 0 && probeX == 5 && (probeY == 1 || probeY == 3)) continue;
+        if (i == 2 && probeX == 6 && (probeY == 1 || probeY == 3)) continue;
         if (boardSlots[probeX][probeY]->isFlipped == false) continue;
         if (boardSlots[probeX][probeY]->side == chosen->side) continue;
+        if(isXingYing(probeX,probeY)&&boardSlots[probeX][probeY]->thisType!=EMPTY) continue;
         clashResult =
             WIN_CHART[chosen->thisType][boardSlots[probeX][probeY]->thisType];
         if (clashResult == WIN || clashResult == BOTH_DIE)
@@ -530,7 +546,7 @@ void MiliChess::resetCursor() {
     if (turnState == CHOOSE_PIECE) {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 5; j++) {
-                if (boardSlots[i][j]->thisType == EMPTY)
+                if (boardSlots[i][j]->thisType == EMPTY||(boardSlots[i][j]->isFlipped==true&&boardSlots[i][j]->side!=players[currentPlayer].side))
                     boardSlots[i][j]->setCursor(Qt::ForbiddenCursor);
                 else
                     boardSlots[i][j]->setCursor(Qt::ArrowCursor);
@@ -556,6 +572,4 @@ void MiliChess::win(PLAYERS wonPlayer) {
     text += QString::fromUtf8("\n请使用主菜单重新开始游戏！");
     ui->mainInfo->setText(text);
     //Freeze the game
-    for (int i = 0; i < 12; i++)
-        for (int j = 0; j < 5; j++) boardSlots[i][j]->setEnabled(false);
 }
