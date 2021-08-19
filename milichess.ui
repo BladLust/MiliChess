@@ -341,9 +341,7 @@ border-image: url(:/imgs/MineB.png);</string>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: grey;
-border-image: url(:/imgs/BannarB.png);
-box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);</string>
+     <string notr="true">border-image: url(:/imgs/BannarB.png);</string>
     </property>
     <property name="text">
      <string/>
@@ -1202,6 +1200,39 @@ border-image: url(:/imgs/TuanB.png);</string>
      <bool>false</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="mainInfo">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>264</y>
+      <width>434</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>.AppleSimplifiedChineseFont</family>
+      <pointsize>26</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <kerning>true</kerning>
+     </font>
+    </property>
+    <property name="text">
+     <string>请点击主菜单中Start开始游戏</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+    <property name="textInteractionFlags">
+     <set>Qt::NoTextInteraction</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menuBar">
@@ -1233,7 +1264,7 @@ border-image: url(:/imgs/TuanB.png);</string>
   </widget>
   <action name="actionStart">
    <property name="text">
-    <string>Start</string>
+    <string>Start/Reset</string>
    </property>
   </action>
   <action name="actionForfeit">

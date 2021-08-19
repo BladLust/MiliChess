@@ -1,9 +1,8 @@
-#include "milichess.h"
-
 #include <QApplication>
 
-int main(int argc, char *argv[])
-{
+#include "milichess.h"
+
+int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     MiliChess w;
     w.show();
