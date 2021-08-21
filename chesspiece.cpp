@@ -25,10 +25,9 @@ void ChessPiece::release() {
 }
 void ChessPiece::reStyle() {
     QString style("border-image: url(:/imgs/");
-    style +=
-        (!isFlipped)
-            ? QString("Unflipped")
-            : (QString(TYPE_NAME[thisType]) + QString(side==BLUE ? "B" : "R"));
+    style += (!isFlipped) ? QString("Unflipped")
+                          : (QString(TYPE_NAME[thisType]) +
+                             QString(side == BLUE ? "B" : "R"));
     style += QString(".png);");
     if (isPressed) {
         style += QString("border: 2px solid;");

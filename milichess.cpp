@@ -1,5 +1,7 @@
 #include "milichess.h"
 
+#include <QMessageBox>
+#include <QTcpSocket>
 #include <random>
 
 #include "ui_milichess.h"
@@ -110,9 +112,8 @@ MiliChess::MiliChess(QWidget *parent)
     boardSlots[9][3]->side = RED, boardSlots[9][3]->thisType = YING;
     boardSlots[9][4] = qobject_cast<ChessPiece *>(ui->YingR2);
     boardSlots[9][4]->side = RED, boardSlots[9][4]->thisType = YING;
-    for(int i=10;i<12;++i)
-        for(int j=0;j<5;++j)
-            boardSlots[i][j]=nullptr;
+    for (int i = 10; i < 12; ++i)
+        for (int j = 0; j < 5; ++j) boardSlots[i][j] = nullptr;
     placeHolderCount = 0;
     for (int i = 0; i < 70; i++) {
         ChessPiece *newEmpty = new ChessPiece(this);
@@ -132,6 +133,7 @@ MiliChess::MiliChess(QWidget *parent)
                                                // chesspieces into the array
         connect(pieces[i], &QPushButton::released, this, &MiliChess::gridPress);
     }
+    freezeBoard();
     connect(ui->actionStart, &QAction::triggered, this, &MiliChess::resetGame);
     qDebug() << "Init Complete!";
 }
@@ -143,13 +145,30 @@ MiliChess::~MiliChess() { delete ui; }
 void MiliChess::gridPress() {
     int x, y;
     hprPointToGrid(x, y, qobject_cast<ChessPiece *>(sender())->pos());
+    if (isOnlineGame && currentPlayer != thisPlayer) return;
+    playerAction(x, y);
+    if (isOnlineGame) {
+        if (isHost) {
+            host->socket->write((QString::fromUtf8("gridh:") +
+                                 QString::number(x) + QString(',') +
+                                 QString::number(y))
+                                    .toUtf8());
+        } else {
+            client->socket->write((QString::fromUtf8("gridc:") +
+                                   QString::number(x) + QString(',') +
+                                   QString::number(y))
+                                      .toUtf8());
+        }
+    }
+}
+void MiliChess::playerAction(int x, int y) {
     ChessPiece *thisPiece = boardSlots[x][y];
     qDebug() << "Received Press on grid location " << x << "," << y;
     if (x == -1 || y == -1) qDebug() << "Received Press on unorthodox button";
 
-        if (turnState == CHOOSE_PIECE) {
-         if(thisPiece->thisType==EMPTY)return;
-        if ( thisPiece->isFlipped == false) {
+    if (turnState == CHOOSE_PIECE) {
+        if (thisPiece->thisType == EMPTY) return;
+        if (thisPiece->isFlipped == false) {
             thisPiece->isFlipped = true;
             thisPiece->reStyle();
             if (!sideDetermined) {
@@ -166,10 +185,12 @@ void MiliChess::gridPress() {
             printGameInfo();
             return;
         }
-        if (thisPiece->isFlipped==true&&sideDetermined==false){
+        if (thisPiece->isFlipped == true && sideDetermined == false) {
             return;
         }
-        if(thisPiece->isFlipped==true&&thisPiece->side!=players[currentPlayer].side)return;
+        if (thisPiece->isFlipped == true &&
+            thisPiece->side != players[currentPlayer].side)
+            return;
         switch (thisPiece->thisType) {
             case BANNAR:
             case UNPROTECTED_BANNAR:
@@ -200,7 +221,8 @@ void MiliChess::gridPress() {
             hprPointToGrid(chosenX, chosenY, chosen->pos());
             boardSlots[chosenX][chosenY] =
                 placeHolderPieces[chosenX * 5 + chosenY];
-            boardSlots[chosenX][chosenY]->move(HOR_ANCHOR[chosenY],VER_ANCHOR[chosenX]);
+            boardSlots[chosenX][chosenY]->move(HOR_ANCHOR[chosenY],
+                                               VER_ANCHOR[chosenX]);
             boardSlots[chosenX][chosenY]->show();
             boardSlots[chosenX][chosenY]->setEnabled(true);
             // If the eaten button wasn't a placeholder, decrease its count
@@ -218,8 +240,10 @@ void MiliChess::gridPress() {
                                                         : ui->BannarR1)
                         ->thisType = UNPROTECTED_BANNAR;
                 }
-                if (boardSlots[x][y]->thisType == UNPROTECTED_BANNAR)
+                if (boardSlots[x][y]->thisType == UNPROTECTED_BANNAR) {
                     win(currentPlayer);
+                    return;
+                }
                 boardSlots[x][y] = chosen;
             } else {
                 // If it's suicide attack, generate a new empty button
@@ -228,7 +252,7 @@ void MiliChess::gridPress() {
                 players[currentPlayer].pieceCount[chosen->thisType]--;
                 boardSlots[x][y] = placeHolderPieces[x * 5 + y];
                 boardSlots[x][y]->setEnabled(true);
-                boardSlots[x][y]->move(HOR_ANCHOR[y],VER_ANCHOR[x]);
+                boardSlots[x][y]->move(HOR_ANCHOR[y], VER_ANCHOR[x]);
                 boardSlots[x][y]->show();
             }
             turnState = CHOOSE_PIECE;
@@ -249,15 +273,17 @@ void MiliChess::resetGame() {
     players[1].reset();
     sideDetermined = false;
     turnState = CHOOSE_PIECE;
-    //Unfreeze the game from last game
+    // Unfreeze the game from last game
+    for (int i = 0; i < 50; i++) pieces[i]->setEnabled(true), pieces[i]->show();
     for (int i = 0; i < 70; i++) {
         placeHolderPieces[i]->setEnabled(false);
         placeHolderPieces[i]->hide();
     }
     ui->mainInfo->setAlignment(Qt::Alignment(Qt::AlignmentFlag::AlignLeft |
                                              Qt::AlignmentFlag::AlignVCenter));
-    currentPlayer = (PLAYERS)(
-        std::chrono::system_clock::now().time_since_epoch().count() % 2);
+    if (isOnlineGame == false || isHost == true)
+        boardSeed = std::chrono::system_clock::now().time_since_epoch().count();
+    currentPlayer = (PLAYERS)(boardSeed % 2);
     for (int i = 0; i < 50;
          i++) {  // Put all pieces on the top 50 grids on the board, face down
         boardSlots[i / 5][i % 5] = pieces[i];
@@ -267,8 +293,7 @@ void MiliChess::resetGame() {
     //        placeHolderCount--) {  // Delete empty placeholders from previous
     //        games placeHolderPieces[placeHolderCount-1].resetEmpty();
     //    }
-    std::mt19937 mtr(
-        std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 mtr(boardSeed);
     std::shuffle((ChessPiece **)boardSlots, (ChessPiece **)boardSlots + 50,
                  mtr);  // Shuffle the order of first 50 pieces on board
     for (int i = 0; i < 10; i++) {
@@ -288,9 +313,9 @@ void MiliChess::resetGame() {
             boardSlots[i][j]->reStyle();
         }
     }
-    for(int i=0;i<12;i++){
-        for(int j=0;j<5;j++){
-            movableMap[i][j]=true;
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 5; j++) {
+            movableMap[i][j] = true;
         }
     }
     resetCursor();
@@ -298,9 +323,10 @@ void MiliChess::resetGame() {
 }
 
 void MiliSide::reset() {
-    lastFlipped=UNDETERMINED;
-    side=UNDETERMINED;
-    pieceCount[BANNAR] = pieceCount[COMM] = pieceCount[JUN] = 1;
+    lastFlipped = UNDETERMINED;
+    side = UNDETERMINED;
+    pieceCount[BANNAR] = pieceCount[UNPROTECTED_BANNAR] = pieceCount[COMM] =
+        pieceCount[JUN] = 1;
     pieceCount[SHI] = pieceCount[LV] = pieceCount[TUAN] = pieceCount[YING] =
         pieceCount[BOMB] = 2;
     pieceCount[LIAN] = pieceCount[PAI] = pieceCount[SOLDIER] =
@@ -361,20 +387,37 @@ void MiliChess::printGameInfo() {
     QString text;
     if (!sideDetermined) {
         text += QString::fromUtf8(
-            "双方轮流翻开棋子，首个连续翻出两枚同色棋子的玩家定为该色\n当前玩家"
-            "：");
-        text += QString::fromUtf8(currentPlayer ? "玩家2" : "玩家1");
-        ui->mainInfo->setText(text);
+            "双方轮流翻开棋子，首个连续翻出两枚同色棋子的玩家定为该色\n");
+        if (isOnlineGame)
+            text += QString::fromUtf8(currentPlayer == thisPlayer ? "您的回合"
+                                                                  : "对方回合");
+        else
+            text += QString::fromUtf8(currentPlayer ? "玩家2的回合"
+                                                    : "玩家1的回合");
     } else {
-        text += QString::fromUtf8("当前玩家：");
-        text += QString::fromUtf8(currentPlayer ? "玩家2" : "玩家1");
+        if (isOnlineGame)
+            text += QString::fromUtf8(currentPlayer == thisPlayer ? "您的回合"
+                                                                  : "对方回合");
+        else
+            text += QString::fromUtf8(currentPlayer ? "玩家2的回合"
+                                                    : "玩家1的回合");
         text += QString::fromUtf8(players[currentPlayer].side ? "\t蓝色方\n"
                                                               : "\t红色方\n");
-        if (turnState)
-        text+=QString::fromUtf8("当前选中：")+QString::fromUtf8(TYPE_NAME_CHN[chosen->thisType]);
-        text += QString::fromUtf8(turnState ? "，请选择移动位置" : "请选择棋子");
-        ui->mainInfo->setText(text);
+        if (isOnlineGame&&(currentPlayer!=thisPlayer)) {
+            if (turnState)
+                text += QString::fromUtf8("当前选中：") +
+                        QString::fromUtf8(TYPE_NAME_CHN[chosen->thisType]);
+            text += QString::fromUtf8(turnState ? "，正在选择移动位置"
+                                                : "正在选择棋子");
+        } else {
+            if (turnState)
+                text += QString::fromUtf8("当前选中：") +
+                        QString::fromUtf8(TYPE_NAME_CHN[chosen->thisType]);
+            text += QString::fromUtf8(turnState ? "，请选择移动位置"
+                                                : "请选择棋子");
+        }
     }
+    ui->mainInfo->setText(text);
     // UNDER CONSTRUCTION
     return;
 }
@@ -460,7 +503,7 @@ void MiliChess::checkHRailway(int v, int h) {
         if (clashResult != WIN && clashResult != BOTH_DIE) break;
         movableMap[v][i] = true;
         if (chosen->thisType == SOLDIER) {
-            if (i == 4) checkVRailway(v, i);
+            if (i == 0) checkVRailway(v, i);
             if (i == 2) {
                 clashResult =
                     WIN_CHART[chosen->thisType][boardSlots[6][2]->thisType];
@@ -509,7 +552,9 @@ void MiliChess::makeMovableMap() {
             if (boardSlots[probeX][probeY]->side == chosen->side) continue;
             clashResult = WIN_CHART[chosen->thisType]
                                    [boardSlots[probeX][probeY]->thisType];
-            if (clashResult == WIN || clashResult == BOTH_DIE)
+            if ((clashResult == WIN || clashResult == BOTH_DIE) &&
+                (!isXingYing(probeX, probeY) ||
+                 boardSlots[probeX][probeY]->thisType == EMPTY))
                 movableMap[probeX][probeY] = true;
         }
     } else {
@@ -518,10 +563,10 @@ void MiliChess::makeMovableMap() {
             probeY = chosenY + DIRECTION_MAP[i * 2 + 1][1];
             if (probeX < 0 || probeX > 11 || probeY < 0 || probeY > 4) continue;
             if (!isXingYing(probeX, probeY)) continue;
-            if(boardSlots[probeX][probeY]->thisType!=EMPTY) continue;
+            if (boardSlots[probeX][probeY]->thisType != EMPTY) continue;
             if (boardSlots[probeX][probeY]->isFlipped == false) continue;
             if (boardSlots[probeX][probeY]->side == chosen->side) continue;
-                movableMap[probeX][probeY] = true;
+            movableMap[probeX][probeY] = true;
         }
     }
     // Thirdly, the horizontal and vertical ones.
@@ -535,7 +580,9 @@ void MiliChess::makeMovableMap() {
         if (i == 2 && probeX == 6 && (probeY == 1 || probeY == 3)) continue;
         if (boardSlots[probeX][probeY]->isFlipped == false) continue;
         if (boardSlots[probeX][probeY]->side == chosen->side) continue;
-        if(isXingYing(probeX,probeY)&&boardSlots[probeX][probeY]->thisType!=EMPTY) continue;
+        if (isXingYing(probeX, probeY) &&
+            boardSlots[probeX][probeY]->thisType != EMPTY)
+            continue;
         clashResult =
             WIN_CHART[chosen->thisType][boardSlots[probeX][probeY]->thisType];
         if (clashResult == WIN || clashResult == BOTH_DIE)
@@ -546,7 +593,9 @@ void MiliChess::resetCursor() {
     if (turnState == CHOOSE_PIECE) {
         for (int i = 0; i < 12; i++) {
             for (int j = 0; j < 5; j++) {
-                if (boardSlots[i][j]->thisType == EMPTY||(boardSlots[i][j]->isFlipped==true&&boardSlots[i][j]->side!=players[currentPlayer].side))
+                if (boardSlots[i][j]->thisType == EMPTY ||
+                    (boardSlots[i][j]->isFlipped == true &&
+                     boardSlots[i][j]->side != players[currentPlayer].side))
                     boardSlots[i][j]->setCursor(Qt::ForbiddenCursor);
                 else
                     boardSlots[i][j]->setCursor(Qt::ArrowCursor);
@@ -570,6 +619,137 @@ void MiliChess::win(PLAYERS wonPlayer) {
                 ? QString::fromUtf8("以红色方获胜！")
                 : QString::fromUtf8("以蓝色方获胜！");
     text += QString::fromUtf8("\n请使用主菜单重新开始游戏！");
-    ui->mainInfo->setText(text);
-    //Freeze the game
+    // Freeze the game
+    freezeBoard();
+}
+void MiliChess::freezeBoard() {
+    for (int i = 0; i < 12; i++) {
+        for (int j = 0; j < 5; j++) {
+            if (boardSlots[i][j]) boardSlots[i][j]->setEnabled(false);
+        }
+    }
+    if (chosen) chosen->setEnabled(false);
+}
+
+void MiliChess::on_actionConnect_As_Host_triggered() {
+    isOnlineGame = false;
+    if (host) delete host;
+    host = new ConnectAsHost(this);
+    host->show();
+    connect(host->server, &QTcpServer::newConnection, this,
+            &MiliChess::serverConnected);
+}
+
+void MiliChess::serverConnected() {
+    host->socket = host->server->nextPendingConnection();
+    resetGame();
+    thisPlayer = PLAYER1;
+    host->socket->write(
+        (QString::fromUtf8("reset:") + QString::number(boardSeed)).toUtf8());
+    isOnlineGame = true;
+    isHost = true;
+    printGameInfo();
+    connect(host->socket, &QTcpSocket::readyRead, this,
+            &MiliChess::messageReceivedAsHost);
+    host->close();
+    return;
+}
+
+void MiliChess::serverDisconnected() {
+    isOnlineGame = false;
+    isHost = false;
+    QMessageBox::information(
+        NULL, "对手断开连接",
+        "对手已经断开了连接，对局已丢失，请重新连接或开始本地对局",
+        QMessageBox::Ok, QMessageBox::Ok);
+    if (host && host->server) {
+        host->server->close();
+    }
+    delete host;
+    host = nullptr;
+    freezeBoard();
+    return;
+}
+
+void MiliChess::on_actionConnect_To_Host_triggered() {
+    isOnlineGame = false;
+    if (client) delete client;
+    client = new ConnectToHost(this);
+    client->show();
+    client->setModal(true);
+    connect(client->socket, &QTcpSocket::readyRead, this,
+            &MiliChess::messageReceivedAsClient);
+}
+void MiliChess::messageReceivedAsClient() {
+    if (isHost) return;
+    QString receivedMessage = QString(client->socket->readAll());
+    if (beginsWith(receivedMessage, "reset:")) {
+        isOnlineGame = true;
+        isHost = false;
+        boardSeed = receivedMessage.section(':', 1).toULongLong();
+        thisPlayer = PLAYER2;
+        resetGame();
+    }
+    if (beginsWith(receivedMessage, "gridh:")) {
+        if (currentPlayer == thisPlayer) {
+            return;
+        }
+        QString actedGrid = receivedMessage.section(':', 1);
+        playerAction(actedGrid.section(',', 0, 0).toInt(),
+                     actedGrid.section(',', 1, 1).toInt());
+    }
+    if (beginsWith(receivedMessage, "FFh:")) {
+        freezeBoard();
+        QMessageBox::information(this, "对方已投降",
+                                 "恭喜您！对方投降，您已获胜！",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+        win(thisPlayer);
+    }
+}
+
+void MiliChess::messageReceivedAsHost() {
+    if (!isHost) {
+        return;
+    }
+    QString receivedMessage = QString(host->socket->readAll());
+    if (beginsWith(receivedMessage, "gridc:")) {
+        if (currentPlayer == thisPlayer) {
+            return;
+        }
+        QString actedGrid = receivedMessage.section(':', 1);
+        playerAction(actedGrid.section(',', 0, 0).toInt(),
+                     actedGrid.section(',', 1, 1).toInt());
+    }
+    if (beginsWith(receivedMessage, "FFc:")) {
+        freezeBoard();
+        QMessageBox::information(this, "对方已投降",
+                                 "恭喜您！对方投降，您已获胜！",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+        win(thisPlayer);
+    }
+}
+bool MiliChess::beginsWith(QString Target, const char *key) {
+    int i = 0;
+    while (key[i] != '\0') {
+        if (Target[i] != key[i]) return false;
+        ++i;
+    }
+    return true;
+}
+
+void MiliChess::on_actionDisconnect_triggered() {
+    if (isOnlineGame == false) return;
+    if (isHost && host) {
+        if (host->server) host->server->close();
+        delete host;
+        host = nullptr;
+    }
+    if (!isHost && client) {
+        if (client->socket) client->socket->disconnectFromHost();
+        delete client;
+        client = nullptr;
+    }
+    isOnlineGame = false;
+    isHost = false;
+    return;
 }

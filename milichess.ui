@@ -1253,6 +1253,9 @@ border-image: url(:/imgs/TuanB.png);</string>
     <property name="title">
      <string>Connect</string>
     </property>
+    <addaction name="actionConnect_As_Host"/>
+    <addaction name="actionConnect_To_Host"/>
+    <addaction name="actionDisconnect"/>
    </widget>
    <widget class="QMenu" name="PlayMenu">
     <property name="locale">
@@ -1275,6 +1278,21 @@ border-image: url(:/imgs/TuanB.png);</string>
   <action name="actionForfeit">
    <property name="text">
     <string>Forfeit</string>
+   </property>
+  </action>
+  <action name="actionConnect_As_Host">
+   <property name="text">
+    <string>Connect As Host</string>
+   </property>
+  </action>
+  <action name="actionConnect_To_Host">
+   <property name="text">
+    <string>Connect To Host</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>Disconnect</string>
    </property>
   </action>
  </widget>
