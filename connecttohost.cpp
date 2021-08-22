@@ -36,6 +36,8 @@ void ConnectToHost::on_connectToGame_released() {
             QMessageBox::Ok, QMessageBox::Ok);
     }
     connect(socket, &QTcpSocket::connected, this, &ConnectToHost::close);
+    connect(socket, &QTcpSocket::disconnected, this,
+            &ConnectToHost::socketDisconnected);
     socket->connectToHost(QHostAddress(ui->ipInput->text()), portNum);
     setWindowTitle(QString::fromUtf8("请等待连接成功..."));
 }

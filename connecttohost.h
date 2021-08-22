@@ -12,6 +12,8 @@ class ConnectToHost : public QDialog
 {
     Q_OBJECT
 friend class MiliChess;
+signals:
+    void socketDisconnected();
 public:
     explicit ConnectToHost(QWidget *parent = nullptr);
     QTcpSocket* socket;

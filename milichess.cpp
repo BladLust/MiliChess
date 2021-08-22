@@ -135,10 +135,16 @@ MiliChess::MiliChess(QWidget *parent)
     }
     freezeBoard();
     connect(ui->actionStart, &QAction::triggered, this, &MiliChess::resetGame);
+    ui->timerLabel->hide();
+    timer=new TimerThread;
+    connect(timer,&TimerThread::tick,this,&MiliChess::tickReceived);
     qDebug() << "Init Complete!";
 }
 
-MiliChess::~MiliChess() { delete ui; }
+MiliChess::~MiliChess() {
+    if(timer)
+        timer->exit();
+    delete ui; }
 
 // Width:   434 px
 
@@ -182,6 +188,8 @@ void MiliChess::playerAction(int x, int y) {
                 }
             }
             currentPlayer = (PLAYERS)(!(int)currentPlayer);  // Switch side
+            timerTime=21;
+            ui->timerLabel->setText(QString::fromUtf8("剩余时间：20s"));
             printGameInfo();
             return;
         }
@@ -257,6 +265,8 @@ void MiliChess::playerAction(int x, int y) {
             }
             turnState = CHOOSE_PIECE;
             currentPlayer = (PLAYERS)!currentPlayer;
+            ui->timerLabel->setText(QString::fromUtf8("剩余时间：20s"));
+            timerTime=21;
             resetCursor();
         } else {
             qDebug() << "Nope, you can't go there with this one.";
@@ -320,8 +330,13 @@ void MiliChess::resetGame() {
     }
     resetCursor();
     printGameInfo();
+    timerRunning=true;
+    timer->exit();
+    QThread::usleep(10);
+    timer->start();
+    timerTime=21;
+    ui->timerLabel->show();
 }
-
 void MiliSide::reset() {
     lastFlipped = UNDETERMINED;
     side = UNDETERMINED;
@@ -331,6 +346,7 @@ void MiliSide::reset() {
         pieceCount[BOMB] = 2;
     pieceCount[LIAN] = pieceCount[PAI] = pieceCount[SOLDIER] =
         pieceCount[MINE] = 3;
+    overTimeCount=0;
     return;
 }
 void MiliChess::hprPointToGrid(int &y, int &x, const QPoint &pt) {
@@ -403,7 +419,7 @@ void MiliChess::printGameInfo() {
                                                     : "玩家1的回合");
         text += QString::fromUtf8(players[currentPlayer].side ? "\t蓝色方\n"
                                                               : "\t红色方\n");
-        if (isOnlineGame&&(currentPlayer!=thisPlayer)) {
+        if (isOnlineGame && (currentPlayer != thisPlayer)) {
             if (turnState)
                 text += QString::fromUtf8("当前选中：") +
                         QString::fromUtf8(TYPE_NAME_CHN[chosen->thisType]);
@@ -529,7 +545,6 @@ void MiliChess::checkHRailway(int v, int h) {
 }
 static const int DIRECTION_MAP[8][2] = {{-1, 0}, {-1, 1}, {0, 1},  {1, 1},
                                         {1, 0},  {1, -1}, {0, -1}, {-1, -1}};
-
 void MiliChess::makeMovableMap() {
     for (int i = 0; i < 12; ++i)  // Resetting the map
         for (int j = 0; j < 5; ++j) movableMap[i][j] = false;
@@ -613,13 +628,24 @@ void MiliChess::resetCursor() {
     }
 }
 void MiliChess::win(PLAYERS wonPlayer) {
-    QString text =
-        wonPlayer ? QString::fromUtf8("玩家2") : QString::fromUtf8("玩家1");
+    QString text;
+    if (!isOnlineGame)
+        text =
+            wonPlayer ? QString::fromUtf8("玩家2") : QString::fromUtf8("玩家1");
+    else
+        text = wonPlayer == thisPlayer ? QString::fromUtf8("您")
+                                       : QString::fromUtf8("对方");
     text += players[wonPlayer].side == RED
                 ? QString::fromUtf8("以红色方获胜！")
                 : QString::fromUtf8("以蓝色方获胜！");
     text += QString::fromUtf8("\n请使用主菜单重新开始游戏！");
+    QMessageBox::information(NULL, "胜负已决！", text, QMessageBox::Ok,
+                             QMessageBox::Ok);
     // Freeze the game
+    if(timer){
+        timer->exit();
+    }
+    ui->timerLabel->hide();
     freezeBoard();
 }
 void MiliChess::freezeBoard() {
@@ -630,7 +656,6 @@ void MiliChess::freezeBoard() {
     }
     if (chosen) chosen->setEnabled(false);
 }
-
 void MiliChess::on_actionConnect_As_Host_triggered() {
     isOnlineGame = false;
     if (host) delete host;
@@ -639,7 +664,6 @@ void MiliChess::on_actionConnect_As_Host_triggered() {
     connect(host->server, &QTcpServer::newConnection, this,
             &MiliChess::serverConnected);
 }
-
 void MiliChess::serverConnected() {
     host->socket = host->server->nextPendingConnection();
     resetGame();
@@ -651,26 +675,30 @@ void MiliChess::serverConnected() {
     printGameInfo();
     connect(host->socket, &QTcpSocket::readyRead, this,
             &MiliChess::messageReceivedAsHost);
+    connect(host->socket, &QTcpSocket::disconnected, this,
+            &MiliChess::gameDisconnected);
     host->close();
     return;
 }
-
-void MiliChess::serverDisconnected() {
+void MiliChess::gameDisconnected() {
     isOnlineGame = false;
     isHost = false;
-    QMessageBox::information(
-        NULL, "对手断开连接",
-        "对手已经断开了连接，对局已丢失，请重新连接或开始本地对局",
-        QMessageBox::Ok, QMessageBox::Ok);
-    if (host && host->server) {
-        host->server->close();
+    if (isHost) {
+        if (host && host->server) {
+            host->server->close();
+        }
+    } else {
+        if (client && client->socket) {
+            client->socket->close();
+        }
+        freezeBoard();
+        QMessageBox::information(
+            NULL, "断开连接",
+            "连接已经断开，对局已丢失，请重新连接或开始本地对局",
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
     }
-    delete host;
-    host = nullptr;
-    freezeBoard();
-    return;
 }
-
 void MiliChess::on_actionConnect_To_Host_triggered() {
     isOnlineGame = false;
     if (client) delete client;
@@ -679,6 +707,8 @@ void MiliChess::on_actionConnect_To_Host_triggered() {
     client->setModal(true);
     connect(client->socket, &QTcpSocket::readyRead, this,
             &MiliChess::messageReceivedAsClient);
+    connect(client, &ConnectToHost::socketDisconnected, this,
+            &MiliChess::gameDisconnected);
 }
 void MiliChess::messageReceivedAsClient() {
     if (isHost) return;
@@ -700,13 +730,12 @@ void MiliChess::messageReceivedAsClient() {
     }
     if (beginsWith(receivedMessage, "FFh:")) {
         freezeBoard();
-        QMessageBox::information(this, "对方已投降",
+        QMessageBox::information(NULL, "对方已投降",
                                  "恭喜您！对方投降，您已获胜！",
                                  QMessageBox::Ok, QMessageBox::Ok);
         win(thisPlayer);
     }
 }
-
 void MiliChess::messageReceivedAsHost() {
     if (!isHost) {
         return;
@@ -722,7 +751,7 @@ void MiliChess::messageReceivedAsHost() {
     }
     if (beginsWith(receivedMessage, "FFc:")) {
         freezeBoard();
-        QMessageBox::information(this, "对方已投降",
+        QMessageBox::information(NULL, "对方已投降",
                                  "恭喜您！对方投降，您已获胜！",
                                  QMessageBox::Ok, QMessageBox::Ok);
         win(thisPlayer);
@@ -736,7 +765,6 @@ bool MiliChess::beginsWith(QString Target, const char *key) {
     }
     return true;
 }
-
 void MiliChess::on_actionDisconnect_triggered() {
     if (isOnlineGame == false) return;
     if (isHost && host) {
@@ -752,4 +780,45 @@ void MiliChess::on_actionDisconnect_triggered() {
     isOnlineGame = false;
     isHost = false;
     return;
+}
+void MiliChess::on_actionForfeit_triggered() {
+    if (isOnlineGame && (thisPlayer != currentPlayer)) {
+        QMessageBox::warning(this, "无法投降", "现在不是您的回合，无法投降",
+                             QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+    QMessageBox::StandardButtons chosenButton = QMessageBox::question(
+        this, "是否确定认输", "您要认输吗？对手将获得胜利");
+    if (chosenButton == QMessageBox::StandardButton::Yes) {
+        if (isOnlineGame) {
+            if (isHost) {
+                if (host && host->socket)
+                    host->socket->write(QString::fromUtf8("FFh:").toUtf8());
+            } else {
+                if (client && client->socket)
+                    client->socket->write(QString::fromUtf8("FFc:").toUtf8());
+            }
+        }
+        win((PLAYERS)!currentPlayer);
+    }
+}
+void MiliChess::tickReceived(){
+    if(!timerRunning)
+        return;
+    ui->timerLabel->setText(QString::fromUtf8("剩余时间：")+QString::number(--timerTime)+QString::fromUtf8("s"));
+    if(timerTime<6)
+        ui->timerLabel->setStyleSheet("color:red;");
+    else
+        ui->timerLabel->setStyleSheet("color:white;");
+    if(timerTime==0){
+        players[currentPlayer].overTimeCount++;
+        if(players[currentPlayer].overTimeCount==3)
+            win((PLAYERS)!currentPlayer);
+        currentPlayer=(PLAYERS)!currentPlayer;
+        turnState=CHOOSE_PIECE;
+        timerTime=21;
+        resetCursor();
+        printGameInfo();
+    }
+
 }

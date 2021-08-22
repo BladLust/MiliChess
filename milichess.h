@@ -2,6 +2,7 @@
 #define MILICHESS_H
 #include <QDebug>
 #include <QMainWindow>
+#include <QtWidgets/QLabel>
 #include "connectashost.h"
 #include "connecttohost.h"
 #include "chesspiece.h"
@@ -17,7 +18,21 @@ struct MiliSide {
     SIDE side = UNDETERMINED;
     SIDE lastFlipped=UNDETERMINED;
     int pieceCount[14] = {0};
+    int overTimeCount=0;
     void reset();
+};
+
+class TimerThread:public QThread{
+    Q_OBJECT
+signals:
+    void tick();
+public:
+    void run(){
+        while(1){
+            QThread::usleep(1000000);
+            emit tick();
+        }
+    }
 };
 
 class MiliChess : public QMainWindow {
@@ -41,6 +56,9 @@ signals:
     ConnectToHost* client=nullptr;
     unsigned long long boardSeed;
 
+    TimerThread* timer=nullptr;
+    bool timerRunning=false;
+    int timerTime=20;
     ChessPiece *chosen=nullptr;
     ChessPiece *boardSlots[12][5];
     ChessPiece *pieces[50];
@@ -58,6 +76,7 @@ signals:
     void choosePiecePrep();
     bool beginsWith(QString,const char[]);
     void freezeBoard();
+    void timerSetup();
 
 
    public:
@@ -69,12 +88,14 @@ signals:
     void gridPress();
     void resetGame();
     void serverConnected();
-    void serverDisconnected();
+    void gameDisconnected();
     void messageReceivedAsClient();
     void messageReceivedAsHost();
+    void tickReceived();
 private slots:
     void on_actionConnect_As_Host_triggered();
     void on_actionConnect_To_Host_triggered();
     void on_actionDisconnect_triggered();
+    void on_actionForfeit_triggered();
 };
 #endif  // MILICHESS_H
