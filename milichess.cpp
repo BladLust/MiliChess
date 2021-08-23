@@ -136,15 +136,15 @@ MiliChess::MiliChess(QWidget *parent)
     freezeBoard();
     connect(ui->actionStart, &QAction::triggered, this, &MiliChess::resetGame);
     ui->timerLabel->hide();
-    timer=new TimerThread;
-    connect(timer,&TimerThread::tick,this,&MiliChess::tickReceived);
+    timer = new TimerThread;
+    connect(timer, &TimerThread::tick, this, &MiliChess::tickReceived);
     qDebug() << "Init Complete!";
 }
 
 MiliChess::~MiliChess() {
-    if(timer)
-        timer->exit();
-    delete ui; }
+    if (timer) timer->exit();
+    delete ui;
+}
 
 // Width:   434 px
 
@@ -187,8 +187,10 @@ void MiliChess::playerAction(int x, int y) {
                     players[currentPlayer].lastFlipped = thisPiece->side;
                 }
             }
+            unflippedCount--;
             currentPlayer = (PLAYERS)(!(int)currentPlayer);  // Switch side
-            timerTime=21;
+            if(unflippedCount==0)checkDead(currentPlayer);
+            timerTime = 21;
             ui->timerLabel->setText(QString::fromUtf8("剩余时间：20s"));
             printGameInfo();
             return;
@@ -265,8 +267,10 @@ void MiliChess::playerAction(int x, int y) {
             }
             turnState = CHOOSE_PIECE;
             currentPlayer = (PLAYERS)!currentPlayer;
+            if(unflippedCount==0)checkDead(currentPlayer);
+            if(unflippedCount==0)checkDead((PLAYERS)!currentPlayer);
             ui->timerLabel->setText(QString::fromUtf8("剩余时间：20s"));
-            timerTime=21;
+            timerTime = 21;
             resetCursor();
         } else {
             qDebug() << "Nope, you can't go there with this one.";
@@ -330,11 +334,11 @@ void MiliChess::resetGame() {
     }
     resetCursor();
     printGameInfo();
-    timerRunning=true;
+    timerRunning = true;
     timer->exit();
     QThread::usleep(10);
     timer->start();
-    timerTime=21;
+    timerTime = 21;
     ui->timerLabel->show();
 }
 void MiliSide::reset() {
@@ -346,7 +350,7 @@ void MiliSide::reset() {
         pieceCount[BOMB] = 2;
     pieceCount[LIAN] = pieceCount[PAI] = pieceCount[SOLDIER] =
         pieceCount[MINE] = 3;
-    overTimeCount=0;
+    overTimeCount = 0;
     return;
 }
 void MiliChess::hprPointToGrid(int &y, int &x, const QPoint &pt) {
@@ -452,8 +456,17 @@ void MiliChess::checkVRailway(int v, int h) {
         if (boardSlots[i][h]->isFlipped == false) break;
         if (boardSlots[i][h]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[i][h]->thisType];
-        if (clashResult != WIN && clashResult != BOTH_DIE) break;
+        if (boardSlots[i][h]->thisType != EMPTY) {
+            if (clashResult != WIN && clashResult != BOTH_DIE)
+                break;
+            else {
+                movableMap[i][h] = true;
+                checkDeadCount++;
+                break;
+            }
+        }
         movableMap[i][h] = true;
+        checkDeadCount++;
         if ((i == 10 || i == 5 || i == 6) &&
             chosen->thisType ==
                 SOLDIER) {  // Enabling the soldier piece to do its turing thing
@@ -466,8 +479,17 @@ void MiliChess::checkVRailway(int v, int h) {
         if (boardSlots[i][h]->isFlipped == false) break;
         if (boardSlots[i][h]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[i][h]->thisType];
-        if (clashResult != WIN && clashResult != BOTH_DIE) break;
+        if (boardSlots[i][h]->thisType != EMPTY) {
+            if (clashResult != WIN && clashResult != BOTH_DIE)
+                break;
+            else {
+                movableMap[i][h] = true;
+                checkDeadCount++;
+                break;
+            }
+        }
         movableMap[i][h] = true;
+        checkDeadCount++;
         if ((i == 1 || i == 5 || i == 6) &&
             chosen->thisType ==
                 SOLDIER) {  // Enabling the soldier piece to do its turing thing
@@ -484,8 +506,17 @@ void MiliChess::checkHRailway(int v, int h) {
         if (boardSlots[v][i]->isFlipped == false) break;
         if (boardSlots[v][i]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[v][i]->thisType];
-        if (clashResult != WIN && clashResult != BOTH_DIE) break;
+        if (boardSlots[v][i]->thisType != EMPTY) {
+            if (clashResult != WIN && clashResult != BOTH_DIE)
+                break;
+            else {
+                movableMap[v][i] = true;
+                checkDeadCount++;
+                break;
+            }
+        }
         movableMap[v][i] = true;
+        checkDeadCount++;
         if (chosen->thisType == SOLDIER) {
             if (i == 4) checkVRailway(v, i);
             if (i == 2) {
@@ -496,6 +527,7 @@ void MiliChess::checkHRailway(int v, int h) {
                     boardSlots[6][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
                     movableMap[6][2] = true;
+                    checkDeadCount++;
                     checkHRailway(6, 2);
                 }
                 clashResult =
@@ -505,6 +537,7 @@ void MiliChess::checkHRailway(int v, int h) {
                     boardSlots[5][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
                     movableMap[5][2] = true;
+                    checkDeadCount++;
                     checkHRailway(5, 2);
                 }
             }
@@ -516,8 +549,17 @@ void MiliChess::checkHRailway(int v, int h) {
         if (boardSlots[v][i]->isFlipped == false) break;
         if (boardSlots[v][i]->side == chosen->side) break;
         clashResult = WIN_CHART[chosen->thisType][boardSlots[v][i]->thisType];
-        if (clashResult != WIN && clashResult != BOTH_DIE) break;
+        if (boardSlots[v][i]->thisType != EMPTY) {
+            if (clashResult != WIN && clashResult != BOTH_DIE)
+                break;
+            else {
+                movableMap[v][i] = true;
+                checkDeadCount++;
+                break;
+            }
+        }
         movableMap[v][i] = true;
+        checkDeadCount++;
         if (chosen->thisType == SOLDIER) {
             if (i == 0) checkVRailway(v, i);
             if (i == 2) {
@@ -528,6 +570,9 @@ void MiliChess::checkHRailway(int v, int h) {
                     boardSlots[6][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
                     movableMap[6][2] = true;
+                    checkDeadCount++;
+                    if(boardSlots[6][2]->thisType!=EMPTY)
+                        continue;
                     checkHRailway(6, 2);
                 }
                 clashResult =
@@ -537,6 +582,9 @@ void MiliChess::checkHRailway(int v, int h) {
                     boardSlots[5][2]->side != chosen->side &&
                     (clashResult == WIN || clashResult == BOTH_DIE)) {
                     movableMap[5][2] = true;
+                    checkDeadCount++;
+                    if(boardSlots[5][2]->thisType!=EMPTY)
+                        continue;
                     checkHRailway(5, 2);
                 }
             }
@@ -548,9 +596,15 @@ static const int DIRECTION_MAP[8][2] = {{-1, 0}, {-1, 1}, {0, 1},  {1, 1},
 void MiliChess::makeMovableMap() {
     for (int i = 0; i < 12; ++i)  // Resetting the map
         for (int j = 0; j < 5; ++j) movableMap[i][j] = false;
+    checkDeadCount=0;
     int chosenX, chosenY, probeX, probeY;
     PIECE_CLASH_RESULT clashResult;
     hprPointToGrid(chosenX, chosenY, chosen->pos());
+    if(boardSlots[chosenX][chosenY]->thisType==MINE||
+    boardSlots[chosenX][chosenY]->thisType==BANNAR||
+    boardSlots[chosenX][chosenY]->thisType==UNPROTECTED_BANNAR){
+        return;
+    }
     movableMap[chosenX][chosenY] =
         true;  // Set self to true to allow un-selection
     // First we deal with the situations with railways since they are more
@@ -570,7 +624,8 @@ void MiliChess::makeMovableMap() {
             if ((clashResult == WIN || clashResult == BOTH_DIE) &&
                 (!isXingYing(probeX, probeY) ||
                  boardSlots[probeX][probeY]->thisType == EMPTY))
-                movableMap[probeX][probeY] = true;
+            {movableMap[probeX][probeY] = true;
+            checkDeadCount++;}
         }
     } else {
         for (int i = 0; i < 4; ++i) {
@@ -582,6 +637,7 @@ void MiliChess::makeMovableMap() {
             if (boardSlots[probeX][probeY]->isFlipped == false) continue;
             if (boardSlots[probeX][probeY]->side == chosen->side) continue;
             movableMap[probeX][probeY] = true;
+            checkDeadCount++;
         }
     }
     // Thirdly, the horizontal and vertical ones.
@@ -601,7 +657,7 @@ void MiliChess::makeMovableMap() {
         clashResult =
             WIN_CHART[chosen->thisType][boardSlots[probeX][probeY]->thisType];
         if (clashResult == WIN || clashResult == BOTH_DIE)
-            movableMap[probeX][probeY] = true;
+        {movableMap[probeX][probeY] = true;checkDeadCount++;}
     }
 }
 void MiliChess::resetCursor() {
@@ -628,6 +684,10 @@ void MiliChess::resetCursor() {
     }
 }
 void MiliChess::win(PLAYERS wonPlayer) {
+    if(timer){
+        timer->exit();
+        ui->timerLabel->hide();
+    }
     QString text;
     if (!isOnlineGame)
         text =
@@ -642,10 +702,6 @@ void MiliChess::win(PLAYERS wonPlayer) {
     QMessageBox::information(NULL, "胜负已决！", text, QMessageBox::Ok,
                              QMessageBox::Ok);
     // Freeze the game
-    if(timer){
-        timer->exit();
-    }
-    ui->timerLabel->hide();
     freezeBoard();
 }
 void MiliChess::freezeBoard() {
@@ -802,23 +858,37 @@ void MiliChess::on_actionForfeit_triggered() {
         win((PLAYERS)!currentPlayer);
     }
 }
-void MiliChess::tickReceived(){
-    if(!timerRunning)
-        return;
-    ui->timerLabel->setText(QString::fromUtf8("剩余时间：")+QString::number(--timerTime)+QString::fromUtf8("s"));
-    if(timerTime<6)
+void MiliChess::tickReceived() {
+    if (!timerRunning) return;
+    ui->timerLabel->setText(QString::fromUtf8("剩余时间：") +
+                            QString::number(--timerTime) +
+                            QString::fromUtf8("s"));
+    if (timerTime < 6)
         ui->timerLabel->setStyleSheet("color:red;");
     else
         ui->timerLabel->setStyleSheet("color:white;");
-    if(timerTime==0){
+    if (timerTime == 0) {
         players[currentPlayer].overTimeCount++;
-        if(players[currentPlayer].overTimeCount==3)
+        if (players[currentPlayer].overTimeCount == 3)
             win((PLAYERS)!currentPlayer);
-        currentPlayer=(PLAYERS)!currentPlayer;
-        turnState=CHOOSE_PIECE;
-        timerTime=21;
+        currentPlayer = (PLAYERS)!currentPlayer;
+        turnState = CHOOSE_PIECE;
+        timerTime = 21;
         resetCursor();
         printGameInfo();
     }
+}
 
+void MiliChess::checkDead(PLAYERS checkedPlayer){
+   for(int i=0;i<12;i++){
+        for(int j=0;j<5;j++){
+            if(boardSlots[i][j]->thisType!=EMPTY&&boardSlots[i][j]->side==players[checkedPlayer].side){
+                chosen=boardSlots[i][j];
+                makeMovableMap();
+                if(checkDeadCount!=0)
+                    return;
+            }
+        }
+    }
+   win((PLAYERS)!checkedPlayer);
 }

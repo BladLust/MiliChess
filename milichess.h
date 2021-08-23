@@ -51,6 +51,8 @@ signals:
 
     bool isOnlineGame=false;
     bool isHost=false;
+    int checkDeadCount=0;
+    int unflippedCount=50;
     PLAYERS thisPlayer=UNKNOWN_PLAYER;
     ConnectAsHost* host=nullptr;
     ConnectToHost* client=nullptr;
@@ -77,6 +79,7 @@ signals:
     bool beginsWith(QString,const char[]);
     void freezeBoard();
     void timerSetup();
+    void checkDead(PLAYERS);
 
 
    public:
